@@ -182,5 +182,53 @@ module.exports = function(OrderHandler){
           returns: {arg: 'checkout', type: 'string'},
         }
     );	
+
+
+    OrderHandler.createCheckoutProf = function(wcToken, trustedToken, pId, uId, shipMode, cb) {
+        var uri = 'https://localhost/wcs/resources/store/10151/person/@self/checkoutProfile';
+        console.log(uri);
+        request({
+            url: uri,
+            method: 'PUT',
+            headers:{
+                "WCToken": wcToken,
+                "WCTrustedToken": trustedToken,
+                "personalizationID": pId,
+                "userId": uId
+                },  
+            json:{
+                "shipping_addressLine": ["123 Main Street",
+                "Suite 101",
+                "Some Bldng"],
+                "billing_nickName": "Default_Billing",
+                "shipping_nickName": "Default_Shipping",
+                "shipping_modeId": shipMode,
+                "pay_payMethodId": "VISA",
+                "pay_cc_brand": "VISA",
+                "pay_payment_method": "VISA",
+                "pay_account": "4111111111111111",
+                "pay_expire_month": "10",
+                "pay_expire_year": "2015",
+                "billing_country": "IN",
+                "shipping_country": "IN",
+                "billing_addressLine": ["123 Main Street",
+                "Suite 101"]
+            },
+        },
+        function(err, response) {
+            if (err) console.error(err);
+            console.log('Result: '+response);
+            cb(null, response.body);
+        }); 
+    } 
+     OrderHandler.remoteMethod(
+        'createCheckoutProf',
+        {
+            accepts: [{arg: 'wcToken', type: 'string'},{arg: 'trustedToken', type: 'string'},
+                        {arg: 'pId', type: 'string'},{arg: 'shipMode', type: 'string'},{arg: 'uid', type: 'string'}],
+            returns: {arg: 'profile', type: 'string'},
+            http: {path: '/createCheckoutProf', verb: 'PUT'}
+        }
+    );
 };
 
