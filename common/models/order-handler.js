@@ -29,7 +29,7 @@ module.exports = function(OrderHandler){
     );
 	//Add item 2 cart:
 	OrderHandler.addItem2Cart = function(prodId, qty, wcToken, trustedToken, pId, uId, cb) {
-        var uri = 'https://localhost/wcs/resources/store/10151/cart';
+        var uri = 'https://localhost/wcs/resources/store/10001/cart';
         //console.log("prodId: "+prodId+" QTY: "+qty); 
         request({
             url: uri,
@@ -80,7 +80,7 @@ module.exports = function(OrderHandler){
     }*/
     
 		OrderHandler.displayCart = function( wcToken, trustedToken, pId, uId, cb) {
-        var uri = 'https://localhost/wcs/resources/store/10151/cart/@self';
+        var uri = 'https://localhost/wcs/resources/store/10001/cart/@self';
 
         request({
             url: uri,
@@ -185,7 +185,7 @@ module.exports = function(OrderHandler){
 
 
     OrderHandler.createCheckoutProf = function(wcToken, trustedToken, pId, uId, shipMode, cb) {
-        var uri = 'https://localhost/wcs/resources/store/10151/person/@self/checkoutProfile';
+        var uri = 'https://localhost/wcs/resources/store/10001/person/@self/checkoutProfile';
         console.log(uri);
         request({
             url: uri,
@@ -225,7 +225,7 @@ module.exports = function(OrderHandler){
         'createCheckoutProf',
         {
             accepts: [{arg: 'wcToken', type: 'string'},{arg: 'trustedToken', type: 'string'},
-                        {arg: 'pId', type: 'string'},{arg: 'shipMode', type: 'string'},{arg: 'uid', type: 'string'}],
+                        {arg: 'pId', type: 'string'},{arg: 'uid', type: 'string'},{arg: 'shipMode', type: 'string'}],
             returns: {arg: 'profile', type: 'string'},
             http: {path: '/createCheckoutProf', verb: 'PUT'}
         }
