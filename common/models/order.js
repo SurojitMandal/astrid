@@ -109,13 +109,13 @@ module.exports = function(order){
 			cb(null, orderObj);
 		});
 	}
-	
+
     order.remoteMethod(
         'getCartDetails', 
         {
           accepts: [{arg: 'wcToken', type: 'string'},{arg: 'trustedToken', type: 'string'},{arg: 'pId', type: 'string'},{arg: 'uid', type: 'string'}],
 		  http: {path: '/getCartDetails', verb: 'post'},
-          returns: {arg: 'CartResp', type: 'JSON'},
+          returns: {arg: 'cart', type: 'JSON'},
         }
     );	
 };
