@@ -58,12 +58,15 @@ module.exports = function(order){
 		var orderClass = app.models.order;
 		var adjustmentClass = app.models.adjustment;
 		var orderItemClass = app.models.orderItem;
-
+		
 		ordHandlers.displayCart(wcToken, trustedToken, pId, uId, function(err, cart){
 			var orderObj = new orderClass();
 			orderObj.orderId = cart.orderId;
 			var orderItems = [];
 			var ordItems = cart.orderItem;
+			var respJSON = [];
+			var prodIds = [];
+			
 			ordItems.forEach(function(ordItem){
 				var orderItem = new orderItemClass();
 				orderItem.UOM = ordItem.UOM;
@@ -75,6 +78,7 @@ module.exports = function(order){
 				orderItem.status = ordItem.orderItemStatus;
 				orderItem.partNumber = ordItem.partNumber;
 				orderItem.productId = ordItem.productId;
+				prodIds.push(ordItem.productId);
 				orderItem.productUrl = ordItem.productUrl;
 				orderItem.quantity = ordItem.quantity;
 				orderItem.salesTax = ordItem.salesTax;
@@ -88,6 +92,7 @@ module.exports = function(order){
 				orderItem.unitUOM = ordItem.unitUom;
 				orderItems.push(orderItem);
 			});
+			
 			orderObj.orderItem = orderItems;
 			var cartAdj = cart.adjustment;
 			var cartAdjs = [];
@@ -103,10 +108,28 @@ module.exports = function(order){
 			});
 			orderObj.adjustments = cartAdjs;
 			orderObj.grandTotal = cart.grandTotal;
+			orderObj.totalProductPrice = cart.totalProductPrice;
 			orderObj.grandTotalCurrency = cart.grandTotalCurrency;
 			orderObj.lastUpdateTime = cart.lastUpdateDate;
 
-			cb(null, orderObj);
+			respJSON.push(orderObj);
+			var productHandler = app.models.productHandler;
+			var productClass = app.models.product;
+    		var productObj = new productClass();
+			productHandler.findByIds(prodIds ,function(err, productRes){
+	    		if(productRes){
+	                var productView = productRes.catalogEntryView;
+	                if(productView){
+	                    productView.forEach(function(product){
+	                        productObj.name = product.name;
+	                        productObj.thumbnail = product.thumbnail;
+	            		});
+	            	}
+	        	}
+	        	respJSON.push(productObj);
+				cb(null, respJSON);
+			});	
+            
 		});
 	}
 

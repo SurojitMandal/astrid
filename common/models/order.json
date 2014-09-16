@@ -18,6 +18,9 @@
     "grandTotal": {
       "type": "number"
     },
+    "totalProductPrice": {
+      "type": "number"
+    },
     "grandTotalCurrency": {
       "type": "string"
     },
