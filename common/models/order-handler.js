@@ -93,8 +93,8 @@ module.exports = function(OrderHandler){
         }, 
 		function(err, response) {
             if (err) console.error(err);
-			console.log('Result: '+JSON.stringify(response.body));
-			cb(null, '{'+response.request.headers+","+response.body+'}');
+			// console.log('Result: '+JSON.stringify(response.body));
+			cb(null, JSON.parse(response.body));
         });	
     }
 	

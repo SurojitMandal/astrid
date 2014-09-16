@@ -52,19 +52,64 @@ module.exports = function(order){
 	
 	
 	//Get cart details:
-	order.getCartDetails = function( wcToken, trustedToken, pId, uId, cb) {
+	order.getCartDetails = function(wcToken, trustedToken, pId, uId, cb) {
 
 		var ordHandlers = app.models.OrderHandler;
-		
-		ordHandlers.displayCart(wcToken, trustedToken, pId, uId, function(err, cartResp){
-			console.log(cartResp);
-			if(cartResp){
-				console.log('Cart response:::: '+cartResp);
-			}
-				cb(null, cartResp);
-		});
+		var orderClass = app.models.order;
+		var adjustmentClass = app.models.adjustment;
+		var orderItemClass = app.models.orderItem;
 
+		ordHandlers.displayCart(wcToken, trustedToken, pId, uId, function(err, cart){
+			var orderObj = new orderClass();
+			orderObj.orderId = cart.orderId;
+			var orderItems = [];
+			var ordItems = cart.orderItem;
+			ordItems.forEach(function(ordItem){
+				var orderItem = new orderItemClass();
+				orderItem.UOM = ordItem.UOM;
+				orderItem.currency = ordItem.currency;
+				orderItem.createDate = ordItem.createDate;
+				orderItem.orderItemId = ordItem.orderItemId;
+				orderItem.inventoryStatus = ordItem.orderItemInventoryStatus;
+				orderItem.price = ordItem.orderItemPrice;
+				orderItem.status = ordItem.orderItemStatus;
+				orderItem.partNumber = ordItem.partNumber;
+				orderItem.productId = ordItem.productId;
+				orderItem.productUrl = ordItem.productUrl;
+				orderItem.quantity = ordItem.quantity;
+				orderItem.salesTax = ordItem.salesTax;
+				orderItem.salesTaxCurrency = ordItem.salesTaxCurrency;
+				orderItem.shippingCharge = ordItem.shippingCharge;
+				orderItem.shippingChargeCurrency = ordItem.shippingChargeCurrency;
+				orderItem.shippingTax = ordItem.shippingTax;
+				orderItem.shippingTaxCurrency = ordItem.shippingTaxCurrency;
+				orderItem.unitPrice = ordItem.unitPrice;
+				orderItem.unitQuantity = ordItem.unitQuantity;
+				orderItem.unitUOM = ordItem.unitUom;
+				orderItems.push(orderItem);
+			});
+			orderObj.orderItem = orderItems;
+			var cartAdj = cart.adjustment;
+			var cartAdjs = [];
+			cartAdj.forEach(function(adjustment){
+				var cartAdjustment = new adjustmentClass();
+				cartAdjustment.addItemToCart = adjustment.amount;
+				cartAdjustment.code = adjustment.code;
+				cartAdjustment.currency = adjustment.currency;
+				cartAdjustment.description = adjustment.description;
+				cartAdjustment.displayLevel = adjustment.displayLevel;
+				cartAdjustment.usage = adjustment.usag;
+				cartAdjs.push(cartAdjustment);
+			});
+			orderObj.adjustments = cartAdjs;
+			orderObj.grandTotal = cart.grandTotal;
+			orderObj.grandTotalCurrency = cart.grandTotalCurrency;
+			orderObj.lastUpdateTime = cart.lastUpdateDate;
+
+			cb(null, orderObj);
+		});
 	}
+	
     order.remoteMethod(
         'getCartDetails', 
         {
