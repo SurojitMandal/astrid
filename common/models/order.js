@@ -141,4 +141,107 @@ module.exports = function(order){
           returns: {arg: 'cart', type: 'JSON'},
         }
     );	
+
+    //Get cart details:
+	order.orderCheckout = function(wcToken, trustedToken, pId, uId, shipMode, orderId, cb) {
+
+		var ordHandlers = app.models.OrderHandler;
+		var orderClass = app.models.order;
+		var adjustmentClass = app.models.adjustment;
+		var orderItemClass = app.models.orderItem;
+		
+		ordHandlers.orderCheckout(wcToken, trustedToken, pId, uId, shipMode, orderId, function(err, cart){
+			var cart2 = JSON.parse(cart[1]);
+			// console.log(cart2);
+			cart = JSON.parse(cart[0]);
+			// console.log(cart);
+			
+			var orderObj = new orderClass();
+			orderObj.orderId = cart.orderId;
+			var orderItems = [];
+			var ordItems = cart.orderItem;
+			var respJSON = [];
+			var prodIds = [];
+			var shipMethod;
+			// console.log(ordItems.length);
+			ordItems.forEach(function(ordItem){
+				var orderItem = new orderItemClass();
+				orderItem.UOM = ordItem.UOM;
+				orderItem.currency = ordItem.currency;
+				orderItem.createDate = ordItem.createDate;
+				orderItem.orderItemId = ordItem.orderItemId;
+				orderItem.inventoryStatus = ordItem.orderItemInventoryStatus;
+				orderItem.price = ordItem.orderItemPrice;
+				orderItem.status = ordItem.orderItemStatus;
+				orderItem.partNumber = ordItem.partNumber;
+				orderItem.productId = ordItem.productId;
+				prodIds.push(ordItem.productId);
+				orderItem.productUrl = ordItem.productUrl;
+				orderItem.quantity = ordItem.quantity;
+				orderItem.salesTax = ordItem.salesTax;
+				orderItem.salesTaxCurrency = ordItem.salesTaxCurrency;
+				orderItem.shippingCharge = ordItem.shippingCharge;
+				orderItem.shippingChargeCurrency = ordItem.shippingChargeCurrency;
+				orderItem.shippingTax = ordItem.shippingTax;
+				orderItem.shippingTaxCurrency = ordItem.shippingTaxCurrency;
+				orderItem.unitPrice = ordItem.unitPrice;
+				orderItem.unitQuantity = ordItem.unitQuantity;
+				orderItem.unitUOM = ordItem.unitUom;
+				shipMethod = ordItem.shipModeDescription;
+				orderItems.push(orderItem);
+			});
+			
+			orderObj.orderItem = orderItems;
+			var cartAdj = cart.adjustment;
+			var cartAdjs = [];
+			cartAdj.forEach(function(adjustment){
+				var cartAdjustment = new adjustmentClass();
+				cartAdjustment.addItemToCart = adjustment.amount;
+				cartAdjustment.code = adjustment.code;
+				cartAdjustment.currency = adjustment.currency;
+				cartAdjustment.description = adjustment.description;
+				cartAdjustment.displayLevel = adjustment.displayLevel;
+				cartAdjustment.usage = adjustment.usag;
+				cartAdjs.push(cartAdjustment);
+			});
+			orderObj.adjustments = cartAdjs;
+			orderObj.grandTotal = cart.grandTotal;
+			orderObj.totalProductPrice = cart.totalProductPrice;
+			orderObj.grandTotalCurrency = cart.grandTotalCurrency;
+			orderObj.lastUpdateTime = cart.lastUpdateDate;
+			orderObj.shippingAddress = cart2.CheckoutProfile[0].shipping_addressLine;
+			orderObj.shippingMethod = shipMethod;
+			orderObj.billingAddress = cart2.CheckoutProfile[0].billing_addressLine;
+			orderObj.paymentMethod = cart2.CheckoutProfile[0].protocolData.payment_method;
+			orderObj.paymentAmount = cart.grandTotal;
+
+			respJSON.push(orderObj);
+			var productHandler = app.models.productHandler;
+			var productClass = app.models.product;
+    		var productObj = new productClass();
+			productHandler.findByIds(prodIds ,function(err, productRes){
+	    		if(productRes){
+	                var productView = productRes.catalogEntryView;
+	                if(productView){
+	                    productView.forEach(function(product){
+	                        productObj.name = product.name;
+	                        productObj.thumbnail = product.thumbnail;
+	            		});
+	            	}
+	        	}
+	        	respJSON.push(productObj);
+				cb(null, respJSON);
+			});	
+            
+		});
+	}
+
+    order.remoteMethod(
+        'orderCheckout', 
+        {
+          accepts: [{arg: 'wcToken', type: 'string'},{arg: 'trustedToken', type: 'string'},{arg: 'pId', type: 'string'},{arg: 'uid', type: 'string'},{arg: 'shipMode', type: 'string'},{arg: 'orderId', type: 'string'}],
+		  http: {path: '/orderCheckout', verb: 'post'},
+          returns: {arg: 'cart', type: 'JSON'},
+        }
+    );	
 };

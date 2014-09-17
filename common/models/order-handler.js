@@ -1,5 +1,6 @@
 var request = require('request');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+var app = require('../../server/server');
 
 module.exports = function(OrderHandler){
 	
@@ -136,7 +137,7 @@ module.exports = function(OrderHandler){
 	//Pre checkout the order :
 	OrderHandler.preCheckout = function(preCheckout,  cb) {
 	
-        var uri = 'http://restfalcon.mybluemix.net/preCheckout/11';
+        var uri = ' https://localhost/wcs/resources/store/10001/cart/@self/precheckout';
         console.log(uri); 
         request({
             url: uri,
@@ -144,7 +145,7 @@ module.exports = function(OrderHandler){
         }, function(err, response) {
             if (err) console.error(err);
            // console.log('Result'+JSON.stringify(response.body));
-			cb(null, JSON.parse(response.body));
+			cb(null, response.body);
         });	
 		
 	 
@@ -161,7 +162,7 @@ module.exports = function(OrderHandler){
 	//Checkout shopping cart :
 	OrderHandler.checkout = function(checkout,  cb) {
 	
-        var uri = 'http://restfalcon.mybluemix.net/checkout/12';
+        var uri = 'https://localhost/wcs/resources/store/10001/cart/@self/checkout';
         console.log(uri); 
         request({
             url: uri,
@@ -230,5 +231,72 @@ module.exports = function(OrderHandler){
             http: {path: '/createCheckoutProf', verb: 'PUT'}
         }
     );
+
+    OrderHandler.orderCheckout = function(wcToken, trustedToken, pId, uId, shipMode, orderId, cb) {
+        var orderHandler = app.models.OrderHandler;
+        
+        orderHandler.createCheckoutProf(wcToken, trustedToken, pId, uId, shipMode ,function(err, orderRes){
+            var data = "{\"orderId\": \""+orderId+"\"";
+            orderHandler.preCheckout(data ,function(err, orderRes){
+                orderHandler.getOrderDetails(wcToken, trustedToken, pId, uId, orderId, function(err, orderRes){
+                    cb(null, orderRes);
+                });
+            });
+        });
+    } 
+     OrderHandler.remoteMethod(
+        'orderCheckout',
+        {
+            accepts: [{arg: 'wcToken', type: 'string'},{arg: 'trustedToken', type: 'string'},
+                        {arg: 'pId', type: 'string'},{arg: 'uid', type: 'string'},{arg: 'shipMode', type: 'string'},{arg: 'orderId', type: 'string'}],
+            returns: {arg: 'profile', type: 'string'},
+            http: {path: '/orderCheckout', verb: 'GET'}
+        }
+    );
+
+OrderHandler.getOrderDetails = function(wcToken, trustedToken, pId, uId, orderId, cb) {
+     var orderDetailsUri = "https://localhost/wcs/resources/store/10001/order/"+orderId;
+     var res = [];
+        request({
+            url: orderDetailsUri,
+            method: 'GET',
+            headers:{
+                "WCToken": wcToken,
+                "WCTrustedToken": trustedToken,
+                "personalizationID": pId,
+                "userId": uId
+                }
+        },
+        function(err, response) {
+            if (err) console.error(err);
+            res.push(response.body);
+            var getOrderDetailsUri = "https://localhost/wcs/resources/store/10001/person/@self/checkoutProfile";
+            request({
+                url: getOrderDetailsUri,
+                method: 'GET',
+                headers:{
+                    "WCToken": wcToken,
+                    "WCTrustedToken": trustedToken,
+                    "personalizationID": pId,
+                    "userId": uId
+                    }
+            },
+            function(err, response) {
+                if (err) console.error(err);
+                res.push(response.body);
+                cb(null, res);
+            });
+        });
+    }
+     OrderHandler.remoteMethod(
+        'getOrderDetails',
+        {
+            accepts: [{arg: 'wcToken', type: 'string'},{arg: 'trustedToken', type: 'string'},
+                        {arg: 'pId', type: 'string'},{arg: 'uid', type: 'string'},{arg: 'shipMode', type: 'string'},{arg: 'orderId', type: 'string'}],
+            returns: {arg: 'profile', type: 'string'},
+            http: {path: '/getOrderDetails', verb: 'GET'}
+        }
+    );
+
 };
 
