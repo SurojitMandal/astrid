@@ -100,5 +100,9 @@
   "productHandler": {
     "public": false,
     "dataSource": "wcsProductDS"
+  },  
+  "address": {
+    "public": false,
+    "dataSource": "db"
   }
 }

@@ -28,13 +28,13 @@
       "type": "date"
     },
     "shippingAddress": {
-      "type": ["string"]
+      "type": "address"
     },
     "shippingMethod": {
       "type": "string"
     },
     "billingAddress": {
-      "type": ["string"]
+      "type": "address"
     },
     "paymentMethod": {
       "type": "string"

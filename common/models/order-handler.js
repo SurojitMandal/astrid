@@ -205,6 +205,8 @@ module.exports = function(OrderHandler){
                 "shipping_nickName": "Default_Shipping",
                 "shipping_modeId": shipMode,
                 "pay_payMethodId": "VISA",
+                "billing_firstName": "John",
+                "billing_lastName": "Smith",
                 "pay_cc_brand": "VISA",
                 "pay_payment_method": "VISA",
                 "pay_account": "4111111111111111",
@@ -212,6 +214,8 @@ module.exports = function(OrderHandler){
                 "pay_expire_year": "2015",
                 "billing_country": "IN",
                 "shipping_country": "IN",
+                "shipping_firstName": "John",
+                "shipping_lastName": "Smith",
                 "billing_addressLine": ["123 Main Street",
                 "Suite 101"]
             },

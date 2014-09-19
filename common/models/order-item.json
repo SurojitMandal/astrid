@@ -61,6 +61,12 @@
     },
     "unitUOM": {
       "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "thumbnail": {
+      "type": "string"
     }
   },
   "validations": [],
